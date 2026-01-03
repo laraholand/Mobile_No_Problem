@@ -1,4 +1,4 @@
-name: Build Minimal Flutter SDK for Termux (ARM64)
+name: Build Full Flutter SDK for Termux (ARM64)
 
 on:
   push:
@@ -10,15 +10,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repo (Flutter framework + optional project)
-      - name: Checkout repository
+      # 1️⃣ Checkout repo (Flutter framework)
+      - name: Checkout Flutter repository
         uses: actions/checkout@v4
 
       # 2️⃣ Install required tools
       - name: Install build tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y git curl unzip xz-utils tar
+          sudo apt-get install -y git curl unzip xz-utils tar zip
 
       # 3️⃣ Clone Flutter framework
       - name: Clone Flutter framework
@@ -33,27 +33,33 @@ jobs:
           unzip dart-sdk.zip -d flutter-sdk/bin/cache/dart-sdk
           rm dart-sdk.zip
 
-      # 5️⃣ Copy minimal flutter shim script
-      - name: Copy flutter.sh to flutter/bin
+      # 5️⃣ Remove minimal shim (use full Flutter bin)
+      - name: Use full Flutter bin
         run: |
-          mkdir -p flutter-sdk/bin
-          cp lib/flutter.sh flutter-sdk/bin/flutter
+          # Full flutter/bin already exists from clone; nothing extra needed
           chmod +x flutter-sdk/bin/flutter
 
-      # 6️⃣ Verify pub commands
-      - name: Test pub
+      # 6️⃣ Pre-cache Flutter artifacts
+      - name: Pre-cache Flutter artifacts
         run: |
           cd flutter-sdk
-          ./bin/flutter pub get || echo "Pub get works"
-          ./bin/flutter pub upgrade || echo "Pub upgrade works"
+          ./bin/flutter precache --arm64
 
-      # 7️⃣ Package & split SDK (100MB parts)
+      # 7️⃣ Verify pub commands (full Flutter)
+      - name: Test pub and language-server
+        run: |
+          cd flutter-sdk
+          ./bin/flutter pub get
+          ./bin/flutter pub upgrade
+          ./bin/flutter language-server --version || echo "LSP ready"
+
+      # 8️⃣ Package & split SDK (100MB parts)
       - name: Package and split Flutter SDK for Termux
         run: |
           zip -r flutter-sdk-arm64.zip flutter-sdk
           split -b 100M flutter-sdk-arm64.zip flutter-sdk-arm64.zip.part-
 
-      # 8️⃣ Upload split artifacts
+      # 9️⃣ Upload split artifacts
       - name: Upload Flutter SDK artifact (split)
         uses: actions/upload-artifact@v4
         with:
