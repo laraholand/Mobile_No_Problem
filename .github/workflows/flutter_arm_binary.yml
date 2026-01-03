@@ -47,14 +47,15 @@ jobs:
           ./bin/flutter pub get || echo "Pub get works"
           ./bin/flutter pub upgrade || echo "Pub upgrade works"
 
-      # 7️⃣ Package minimal SDK
-      - name: Package Flutter SDK for Termux
+      # 7️⃣ Package & split SDK (100MB parts)
+      - name: Package and split Flutter SDK for Termux
         run: |
           zip -r flutter-sdk-arm64.zip flutter-sdk
+          split -b 100M flutter-sdk-arm64.zip flutter-sdk-arm64.zip.part-
 
-      # 8️⃣ Upload artifact
-      - name: Upload Flutter SDK artifact
+      # 8️⃣ Upload split artifacts
+      - name: Upload Flutter SDK artifact (split)
         uses: actions/upload-artifact@v4
         with:
           name: flutter-sdk-arm64
-          path: flutter-sdk-arm64.zip
+          path: flutter-sdk-arm64.zip.part-*
