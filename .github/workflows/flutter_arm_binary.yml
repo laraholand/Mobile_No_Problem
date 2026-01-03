@@ -43,7 +43,7 @@ jobs:
       - name: Pre-cache Flutter artifacts
         run: |
           cd flutter-sdk
-          ./bin/flutter precache --arm64
+          ./bin/flutter precache 
 
       # 7️⃣ Verify pub commands (full Flutter)
       - name: Test pub and language-server
