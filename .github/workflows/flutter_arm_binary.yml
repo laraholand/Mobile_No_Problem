@@ -1,0 +1,65 @@
+name: Build Minimal Flutter SDK for Termux (ARM64)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-sdk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install required tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git curl unzip xz-utils tar
+
+      - name: Clone Flutter
+        run: |
+          git clone --depth 1 https://github.com/flutter/flutter.git flutter-sdk
+
+      - name: Download Dart SDK (ARM64 for Android/Termux)
+        run: |
+          mkdir -p flutter-sdk/bin/cache/dart-sdk
+          # এখানে linux-arm64 ভার্সন ব্যবহার করা হয়েছে
+          curl -L https://storage.googleapis.com/dart-archive/channels/stable/release/3.5.4/sdk/dartsdk-linux-arm64-release.zip -o dart-sdk.zip
+          unzip dart-sdk.zip -d flutter-sdk/bin/cache/
+          # জিপ ফাইল আনজিপ করলে dart-sdk ফোল্ডার তৈরি হয়, সেটাকে সঠিক জায়গায় মুভ করা
+          mv flutter-sdk/bin/cache/dart-sdk/* flutter-sdk/bin/cache/dart-sdk/ 2>/dev/null || true
+          rm dart-sdk.zip
+
+      - name: Create flutter shim (For Termux)
+        run: |
+          cat > flutter-sdk/bin/flutter << 'EOF'
+#!/bin/sh
+FLUTTER_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+export FLUTTER_ROOT
+export PATH="$FLUTTER_ROOT/bin/cache/dart-sdk/bin:$PATH"
+
+# সরাসরি ডার্ট স্ন্যাপশট ব্যবহার করে pub get বা analyzer চালানো
+if [ "$1" = "pub" ]; then
+    shift
+    exec dart pub "$@"
+elif [ "$1" = "analyze" ]; then
+    shift
+    exec dart analyze "$@"
+else
+    # অন্যান্য কমান্ডের জন্য সাধারণ ডার্ট কল
+    exec dart "$@"
+fi
+EOF
+          chmod +x flutter-sdk/bin/flutter
+
+      - name: Package minimal SDK
+        run: |
+          zip -r flutter-sdk-arm64.zip flutter-sdk
+
+      - name: Upload SDK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-sdk-arm64
+          path: flutter-sdk-arm64.zip
