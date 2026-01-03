@@ -54,7 +54,7 @@ jobs:
 
       # 8️⃣ Upload artifact
       - name: Upload Flutter SDK artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: flutter-sdk-arm64
           path: flutter-sdk-arm64.zip
