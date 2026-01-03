@@ -33,18 +33,11 @@ jobs:
           unzip dart-sdk.zip -d flutter-sdk/bin/cache/dart-sdk
           rm dart-sdk.zip
 
-      # 5️⃣ Create minimal flutter shim (for pub & analyzer)
-      - name: Create minimal flutter shim
+      # 5️⃣ Copy minimal flutter shim script
+      - name: Copy flutter.sh to flutter/bin
         run: |
           mkdir -p flutter-sdk/bin
-          cat > flutter-sdk/bin/flutter << 'EOF'
-#!/bin/sh
-# Minimal Flutter shim for Termux / LSP
-FLUTTER_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-export FLUTTER_ROOT
-export PATH="$FLUTTER_ROOT/bin/cache/dart-sdk/bin:$PATH"
-exec dart "$FLUTTER_ROOT/bin/cache/dart-sdk/bin/snapshots/pub.dart.snapshot" "$@"
-EOF
+          cp lib/flutter.sh flutter-sdk/bin/flutter
           chmod +x flutter-sdk/bin/flutter
 
       # 6️⃣ Verify pub commands
