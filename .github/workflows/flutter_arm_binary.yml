@@ -1,4 +1,4 @@
-name: Build Minimal Flutter SDK for Termux (ARM64)
+name: Build Minimal Flutter SDK for Termux(ARM64)
 
 on:
   push:
