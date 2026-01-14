@@ -1,0 +1,43 @@
+name: Build Termux Bootstrap (ARM64)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-bootstrap:
+    runs-on: ubuntu-latest
+    env:
+      TERMUX_APP_PACKAGE: com.vault.fide  # তোমার নতুন package name
+
+    steps:
+      # 1️⃣ Checkout termux-packages repo
+      - name: Checkout termux-packages repository
+        uses: actions/checkout@v4
+        with:
+          path: termux-packages
+
+      # 2️⃣ Install required build tools
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git curl unzip xz-utils tar zip docker.io
+
+      # 3️⃣ Clean old builds (force rebuild)
+      - name: Clean previous build artifacts
+        run: |
+          ./termux-packages/scripts/run-docker.sh ./termux-packages/scripts/clean.sh -f
+
+      # 4️⃣ Build aarch64 bootstrap
+      - name: Build aarch64 bootstrap
+        run: |
+          ./termux-packages/scripts/run-docker.sh ./termux-packages/scripts/build-bootstraps.sh --architectures aarch64
+
+      # 5️⃣ Upload bootstrap artifact
+      - name: Upload bootstrap artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: termux-bootstrap-aarch64
+          path: termux-packages/bootstrap-archives/*
