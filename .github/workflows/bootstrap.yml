@@ -23,7 +23,7 @@ jobs:
       - name: Install build tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y git curl unzip xz-utils tar zip docker.io
+          sudo apt-get install -y git curl unzip xz-utils tar zip 
 
       # 3️⃣ Clean old builds (force rebuild)
       - name: Clean previous build artifacts
