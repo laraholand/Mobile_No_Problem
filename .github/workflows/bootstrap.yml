@@ -32,19 +32,27 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-      # 3️⃣ Clean old builds (force rebuild)
+      # 3️⃣ Make scripts executable
+      - name: Ensure scripts are executable
+        working-directory: termux-packages
+        run: |
+          chmod +x ./scripts/run-docker.sh
+          chmod +x ./scripts/clean.sh
+          chmod +x ./scripts/build-bootstraps.sh
+
+      # 4️⃣ Clean old builds (force rebuild)
       - name: Clean previous build artifacts
         working-directory: termux-packages
         run: |
-          ./scripts/run-docker.sh ./scripts/clean.sh -f
+          bash ./scripts/run-docker.sh ./scripts/clean.sh -f
 
-      # 4️⃣ Build aarch64 bootstrap
+      # 5️⃣ Build aarch64 bootstrap
       - name: Build aarch64 bootstrap
         working-directory: termux-packages
         run: |
-          ./scripts/run-docker.sh ./scripts/build-bootstraps.sh --architectures aarch64
+          bash ./scripts/run-docker.sh ./scripts/build-bootstraps.sh --architectures aarch64
 
-      # 5️⃣ Upload bootstrap artifact
+      # 6️⃣ Upload bootstrap artifact
       - name: Upload bootstrap artifact
         uses: actions/upload-artifact@v4
         with:
