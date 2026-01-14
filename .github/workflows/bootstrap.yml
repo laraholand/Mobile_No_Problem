@@ -13,11 +13,9 @@ jobs:
       TERMUX_APP_PACKAGE: com.vault.fide  # তোমার নতুন package name
 
     steps:
-      # 1️⃣ Checkout termux-packages repo
-      - name: Checkout termux-packages repository
+      # 1️⃣ Checkout termux-packages repo (root path)
+      - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          path: termux-packages
 
       # 2️⃣ Install required build tools + Docker
       - name: Install build tools and Docker
@@ -32,25 +30,22 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-      # 3️⃣ Make scripts executable (inside scripts folder)
+      # 3️⃣ Make scripts executable
       - name: Ensure scripts are executable
-        working-directory: termux-packages/scripts
         run: |
-          chmod +x run-docker.sh
-          chmod +x clean.sh
-          chmod +x build-bootstraps.sh
+          chmod +x termux-packages/scripts/run-docker.sh
+          chmod +x termux-packages/scripts/clean.sh
+          chmod +x termux-packages/scripts/build-bootstraps.sh
 
       # 4️⃣ Clean old builds (force rebuild)
       - name: Clean previous build artifacts
-        working-directory: termux-packages/scripts
         run: |
-          bash run-docker.sh ./clean.sh -f
+          bash termux-packages/scripts/run-docker.sh termux-packages/scripts/clean.sh -f
 
       # 5️⃣ Build aarch64 bootstrap
       - name: Build aarch64 bootstrap
-        working-directory: termux-packages/scripts
         run: |
-          bash run-docker.sh ./build-bootstraps.sh --architectures aarch64
+          bash termux-packages/scripts/run-docker.sh termux-packages/scripts/build-bootstraps.sh --architectures aarch64
 
       # 6️⃣ Upload bootstrap artifact
       - name: Upload bootstrap artifact
